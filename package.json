@@ -1,0 +1,31 @@
+{
+  "name": "mailbox_wx",
+  "version": "1.0.0",
+  "description": "application for wechat by managing the mailbox",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mailboxforwechat/wx_mailbox.git"
+  },
+  "author": "Liuye Jianghao",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mailboxforwechat/wx_mailbox/issues"
+  },
+  "homepage": "https://github.com/mailboxforwechat/wx_mailbox#readme",
+  "dependencies": {
+    "crypto": "0.0.3",
+    "ejs": "^2.4.1",
+    "express": "^4.13.4",
+    "express-xml-bodyparser": "^0.3.0",
+    "fs": "0.0.2",
+    "https": "^1.0.0",
+    "path": "^0.12.7",
+    "qs": "^6.2.0",
+    "wechat-oauth": "^1.1.1",
+    "xml2js": "^0.4.16"
+  }
+}
