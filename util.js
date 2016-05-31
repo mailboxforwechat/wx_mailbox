@@ -125,6 +125,25 @@ Util.prototype = {
      req.write(post_str);
      req.end();
     });
-  }
+  },
+    getUserinfo:function(openID){
+    this.getLocalAccessToken(function(token){
+        var access_token = token;
+        var LINK = 'https://api.weixin.qq.com/cgi-bin/user/info?access_token='+access_token+'&openid='+openID+'&lang=zh_CN';
+          https.get(encodeURI(LINK),function(res){
+              var data = ""; 
+              res.on('data',function(chunk){
+                    data += chunk;
+              });
+              res.on('end',function(){
+                var result = JSON.parse(data);
+                console.log(result);
+              });
+          }).on('err',function(err){
+                    console.log("获取用户信息出错"+err);
+                    return;
+              });
+      });  
+}
 };
 module.exports = Util;
