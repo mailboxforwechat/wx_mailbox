@@ -126,6 +126,7 @@ Util.prototype = {
      req.end();
     });
   },
+<<<<<<< HEAD
 
   //数据库邮箱类型字串解析器
   mailtypeParser:function(mailtype,addtype){
@@ -174,5 +175,26 @@ Util.prototype = {
         }
     }
 
+=======
+    getUserinfo:function(openID){
+    this.getLocalAccessToken(function(token){
+        var access_token = token;
+        var LINK = 'https://api.weixin.qq.com/cgi-bin/user/info?access_token='+access_token+'&openid='+openID+'&lang=zh_CN';
+          https.get(encodeURI(LINK),function(res){
+              var data = ""; 
+              res.on('data',function(chunk){
+                    data += chunk;
+              });
+              res.on('end',function(){
+                var result = JSON.parse(data);
+                console.log(result);
+              });
+          }).on('err',function(err){
+                    console.log("获取用户信息出错"+err);
+                    return;
+              });
+      });  
+}
+>>>>>>> 3e77770d253e241cb240265dd313c3acde994ff0
 };
 module.exports = Util;

@@ -1,13 +1,20 @@
 var express = require('express');
 var path = require('path');
+var wxqiyehao = require("wechat-crypto")
 var config = require('./config');
+<<<<<<< HEAD
 var wxqiyehao = require("wechat-crypto")
 //var wxprocessor = require('./wxprocessor');
+=======
+// var wxprocessor = require('./wxprocessor');
+var session = require('express-session');
+>>>>>>> 3e77770d253e241cb240265dd313c3acde994ff0
 var app = express();
 var bodyParser  = require('body-parser');
 
 var xmlparser = require('express-xml-bodyparser');
 var xml_Parse = require('xml2js').parseString;
+<<<<<<< HEAD
 var Util = require('./util');
 var util = new Util();
 var settings = new config();
@@ -25,12 +32,27 @@ w_orm.initialize(w_config,function(err,models){
   User = models.collections.user;
   Note = models.collections.note;
 });
+=======
+// var Util = require('./util');
+// var util = new Util();
+var settings = new config();
+// var processor = new wxprocessor();
+
+app.use(session({
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: true,
+}));
+
+var openid ="";
+>>>>>>> 3e77770d253e241cb240265dd313c3acde994ff0
 
 app.set('views',path.join(__dirname,'views'));
 app.set('view engine','ejs');
 
 app.use(express.static(path.join(__dirname,'public')));
 
+<<<<<<< HEAD
 var cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
@@ -238,6 +260,50 @@ app.post('/pkumailbind',function(req,res){
                     });
             }
         });
+=======
+//util.createMenu();
+
+app.get('/',function(req,res){
+  var query = require('url').parse(req.url).query;
+  var params = require('qs').parse(query);
+  var signature = params.msg_signature||"";
+  var timestamp = params.timestamp||"";
+  var nonce = params.nonce||"";
+  var echostr = params.echostr||"";
+
+  if(signature!==""&&timestamp!==""&&nonce!==""&&echostr!==""){
+    console.log('验证签名');
+    var crypto = new wxqiyehao(settings.TOKEN,settings.encodingAES,settings.corpID);
+    var s = crypto.decrypt(echostr);
+    res.end(s.message);
+  }else{
+    res.cookie('openid', openid);
+    res.render('index',{title:'邮箱绑定', openid: openid});
+  }
+});
+
+app.post('/',xmlparser({trim: false, explicitArray: false}),function(req,res,next){
+  console.log(req.body);
+  var crypto = new wxqiyehao(settings.TOKEN,settings.encodingAES,settings.corpID);
+  var s = crypto.decrypt(req.body.xml.encrypt);
+  console.log(s.message);
+  xml_Parse(s.message, function(err, data) {
+      if (err) {
+        console.log(err);
+        res.end('err');
+      } else {
+        console.log(data);
+        console.log(data.xml.FromUserName);
+        openid = data.xml.FromUserName;
+      }
+    });
+  // var event = req.body.xml.event || "";
+  // if (event === "VIEW") {
+  //     console.log("123");
+  // }
+  // console.log(openid);
+    res.end("");
+>>>>>>> 3e77770d253e241cb240265dd313c3acde994ff0
 });
 
 app.get('/mailunbind',function(req,res){
