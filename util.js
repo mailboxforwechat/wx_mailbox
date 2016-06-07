@@ -70,7 +70,7 @@ Util.prototype = {
                 {
                     "type": "view",
                     "name": "绑定邮箱",
-                    "url": "http://123.206.75.54:4000/"
+                    "url": "http://123.206.70.236:2828/"
                 },
                 {
                     "type": "click",
@@ -125,6 +125,54 @@ Util.prototype = {
      req.write(post_str);
      req.end();
     });
-  }
+  },
+
+  //数据库邮箱类型字串解析器
+  mailtypeParser:function(mailtype,addtype){
+      console.log(mailtype+"     "+addtype);
+      if(mailtype==null) {
+          mailtype = addtype;
+          return mailtype;
+      }else{
+          var strs=[]; //定义一数组
+          var contain=0;
+          strs=mailtype.split(","); //字符分割
+          for(i=0;i<strs.length;i++){
+              if(strs[i]!=addtype)
+                  continue;
+              else{
+                  contain=1;
+                  break;
+              }
+          }
+          if(contain==0){
+              mailtype=mailtype+","+addtype;
+          }
+          return mailtype;
+      }
+  },
+
+    //数据库邮箱类型字串删除器
+    mailtypeDel:function(mailtype,deltype){
+        console.log(mailtype+"     "+deltype);
+        if(mailtype==null) {
+            return mailtype;
+        }else{
+            var strs=[]; //定义一数组
+            var tempstr;
+            strs=mailtype.split(","); //字符分割
+            console.log(strs);
+            for(i=0;i<strs.length;i++){
+                if(strs[i]!=deltype){
+                    if(tempstr==null)
+                        tempstr=strs[i];
+                    else
+                        tempstr=tempstr+","+strs[i];
+                }
+            }
+            return tempstr;
+        }
+    }
+
 };
 module.exports = Util;
