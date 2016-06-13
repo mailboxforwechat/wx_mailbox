@@ -126,8 +126,6 @@ Util.prototype = {
      req.end();
     });
   },
-<<<<<<< HEAD
-
   //数据库邮箱类型字串解析器
   mailtypeParser:function(mailtype,addtype){
       console.log(mailtype+"     "+addtype);
@@ -173,9 +171,17 @@ Util.prototype = {
             }
             return tempstr;
         }
-    }
+    },
+    deleteDoc: function (path) {
+        fs.exists(path, function (exists) {
+            console.log(exists);
+            if(exists){
+                deleteFolderRecursive(path);
+                console.log("delete success");
+            }
+        });
+    },
 
-=======
     getUserinfo:function(openID){
     this.getLocalAccessToken(function(token){
         var access_token = token;
@@ -195,6 +201,21 @@ Util.prototype = {
               });
       });  
 }
->>>>>>> 3e77770d253e241cb240265dd313c3acde994ff0
+};
+function deleteFolderRecursive(path) {
+    var files = [];
+
+    if( fs.existsSync(path) ) {
+        files = fs.readdirSync(path);
+        files.forEach(function(file,index){
+            var curPath = path + "/" + file;
+            if(fs.statSync(curPath).isDirectory()) { // recurse
+                deleteFolderRecursive(curPath);
+            } else { // delete file
+                fs.unlinkSync(curPath);
+            }
+        });
+        fs.rmdirSync(path);
+    }
 };
 module.exports = Util;

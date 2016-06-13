@@ -24,16 +24,25 @@ var user = waterline.Collection.extend({
         qqpassword: {
             type: 'string'
         },
+        qqauthcode: {
+            type: 'string'
+        },
         neusername: {
             type: 'string'
         },
         nepassword: {
             type: 'string'
         },
+        neauthcode: {
+            type: 'string'
+        },
         pkuusername: {
             type: 'string'
         },
         pkupassword: {
+            type: 'string'
+        },
+        pkuauthcode: {
             type: 'string'
         }
     }

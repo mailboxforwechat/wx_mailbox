@@ -2,37 +2,31 @@ var express = require('express');
 var path = require('path');
 var wxqiyehao = require("wechat-crypto")
 var config = require('./config');
-<<<<<<< HEAD
 var wxqiyehao = require("wechat-crypto")
 //var wxprocessor = require('./wxprocessor');
-=======
 // var wxprocessor = require('./wxprocessor');
 var session = require('express-session');
->>>>>>> 3e77770d253e241cb240265dd313c3acde994ff0
 var app = express();
 var bodyParser  = require('body-parser');
 
 var xmlparser = require('express-xml-bodyparser');
 var xml_Parse = require('xml2js').parseString;
-<<<<<<< HEAD
 var Util = require('./util');
 var util = new Util();
 var settings = new config();
 //var processor = new wxprocessor();
 var openid='';
 var mailsender = require('./mailsend');
+var mailreceiver = require('./getmail').getmail;
 
 var w_config = require('./waterline/config').config;
 var w_orm    =  require('./waterline/instance').orm;
 var User;
-var Note;
 w_orm.initialize(w_config,function(err,models){
   if(err) throw err;
   console.log("database initialize success");
   User = models.collections.user;
-  Note = models.collections.note;
 });
-=======
 // var Util = require('./util');
 // var util = new Util();
 var settings = new config();
@@ -45,14 +39,12 @@ app.use(session({
 }));
 
 var openid ="";
->>>>>>> 3e77770d253e241cb240265dd313c3acde994ff0
 
 app.set('views',path.join(__dirname,'views'));
 app.set('view engine','ejs');
 
 app.use(express.static(path.join(__dirname,'public')));
 
-<<<<<<< HEAD
 var cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
@@ -144,11 +136,13 @@ app.get('/pkumailbind',function(req,res){
 app.post('/qqmailbind',function(req,res){
   var  userid = req.cookies.openid;
   var username = req.body.username,
-      password = req.body.password;
+      password = req.body.password,
+      authcode = req.body.authcode;
   console.log("qqbind");
   console.log(userid);
   console.log(username);
   console.log(password);
+    console.log(authcode);
   User.findOne({ userid: userid })
       .exec(function(err, user) {
         if(err){
@@ -158,7 +152,7 @@ app.post('/qqmailbind',function(req,res){
         if(user){
           console.log('username exit');
           var mailtype = util.mailtypeParser(user.mailtype,"qq");
-          User.update({ userid:userid},{ userid:userid,mailtype:mailtype,qqusername: username ,qqpassword:password})
+          User.update({ userid:userid},{ mailtype:mailtype,qqusername: username ,qqpassword:password,qqauthcode:authcode})
               .exec(function(err, newuser) {
                 if(err){
                   console.log(err);
@@ -169,7 +163,7 @@ app.post('/qqmailbind',function(req,res){
               });
         }
         else{
-            User.create({ userid:userid,mailtype:"qq",qqusername: username ,qqpassword:password})
+            User.create({ userid:userid,mailtype:"qq",qqusername: username ,qqpassword:password,qqauthcode:authcode})
                 .exec(function(err, newuser) {
                     if(err){
                         console.log(err);
@@ -184,7 +178,8 @@ app.post('/qqmailbind',function(req,res){
 app.post('/nemailbind',function(req,res){
     var  userid = req.cookies.openid;
     var username = req.body.username,
-        password = req.body.password;
+        password = req.body.password,
+        authcode = req.body.authcode;
     console.log("nebind");
     console.log(userid);
     console.log(username);
@@ -198,7 +193,7 @@ app.post('/nemailbind',function(req,res){
             if(user){
                 console.log('username exit');
                 var mailtype = util.mailtypeParser(user.mailtype,"ne");
-                User.update({ userid:userid},{ userid:userid,mailtype:mailtype,neusername: username ,nepassword:password})
+                User.update({ userid:userid},{ mailtype:mailtype,neusername: username ,nepassword:password,neauthcode:authcode})
                     .exec(function(err, newuser) {
                         if(err){
                             console.log(err);
@@ -209,7 +204,7 @@ app.post('/nemailbind',function(req,res){
                     });
             }
             else{
-                User.create({ userid:userid,mailtype:"ne",neusername: username ,nepassword:password})
+                User.create({ userid:userid,mailtype:"ne",neusername: username ,nepassword:password,neauthcode:authcode})
                     .exec(function(err, newuser) {
                         if(err){
                             console.log(err);
@@ -221,26 +216,32 @@ app.post('/nemailbind',function(req,res){
             }
         });
 });
-app.post('/pkumailbind',function(req,res){
-    var  userid = req.cookies.openid;
+app.post('/pkumailbind',function(req,res) {
+    var userid = req.cookies.openid;
     var username = req.body.username,
-        password = req.body.password;
+        password = req.body.password,
+        authcode = req.body.authcode;
     console.log("pkubind");
     console.log(userid);
     console.log(username);
     console.log(password);
-    User.findOne({ userid: userid })
-        .exec(function(err, user) {
-            if(err){
+    User.findOne({userid: userid})
+        .exec(function (err, user) {
+            if (err) {
                 console.log(err);
                 return res.redirect('/pkumailbind');
             }
-            if(user){
+            if (user) {
                 console.log('username exit');
-                var mailtype = util.mailtypeParser(user.mailtype,"pku");
-                User.update({ userid:userid},{ userid:userid,mailtype:mailtype,pkuusername: username ,pkupassword:password})
-                    .exec(function(err, newuser) {
-                        if(err){
+                var mailtype = util.mailtypeParser(user.mailtype, "pku");
+                User.update({userid: userid}, {
+                        mailtype: mailtype,
+                        pkuusername: username,
+                        pkupassword: password,
+                        pkuauthcode:authcode
+                    })
+                    .exec(function (err, newuser) {
+                        if (err) {
                             console.log(err);
                             return res.redirect('/');
                         }
@@ -248,10 +249,10 @@ app.post('/pkumailbind',function(req,res){
                         return res.redirect('/');
                     });
             }
-            else{
-                User.create({ userid:userid,mailtype:"pku",pkuusername: username ,pkupassword:password})
-                    .exec(function(err, newuser) {
-                        if(err){
+            else {
+                User.create({userid: userid, mailtype: "pku", pkuusername: username, pkupassword: password,pkuauthcode:authcode})
+                    .exec(function (err, newuser) {
+                        if (err) {
                             console.log(err);
                             return res.redirect('/');
                         }
@@ -260,7 +261,7 @@ app.post('/pkumailbind',function(req,res){
                     });
             }
         });
-=======
+});
 //util.createMenu();
 
 app.get('/',function(req,res){
@@ -278,7 +279,7 @@ app.get('/',function(req,res){
     res.end(s.message);
   }else{
     res.cookie('openid', openid);
-    res.render('index',{title:'邮箱绑定', openid: openid});
+    res.render('index',{title:'邮箱管理', openid: openid});
   }
 });
 
@@ -303,7 +304,6 @@ app.post('/',xmlparser({trim: false, explicitArray: false}),function(req,res,nex
   // }
   // console.log(openid);
     res.end("");
->>>>>>> 3e77770d253e241cb240265dd313c3acde994ff0
 });
 
 app.get('/mailunbind',function(req,res){
@@ -322,8 +322,13 @@ app.get('/mailunbind',function(req,res){
                     return res.redirect('/');
                 else{
                     var mailtype =  user.mailtype.split(',');
-                    if(mailtype.length==0)
-                        return res.redirect('/');
+                    if(mailtype.length==0){
+                        res.render("tip_success",{
+                            iconcode:0,
+                            content:"请先绑定邮箱",
+                            yes:'/',
+                            yestext:"返回主页"});
+                    }
                     else
                         res.render('mailunbindlist',{title:'请选择需要解绑邮箱',mailtype:mailtype});
                 }
@@ -346,14 +351,18 @@ app.get('/qqmailunbind',function(req,res){
             if(user){
                 console.log('username unbind');
                 var mailtype = util.mailtypeDel(user.mailtype,"qq");
-                User.update({ userid:userid},{ userid:userid,mailtype:mailtype,qqusername: null ,qqpassword:null})
+                User.update({ userid:userid},{ mailtype:mailtype,qqusername: null ,qqpassword:null,qqauthcode:null})
                     .exec(function(err, newuser) {
                         if(err){
                             console.log(err);
                             return res.redirect('/');
                         }
                         console.log('unbind success');
-                        return res.redirect('/');
+                        res.render("tip_success",{
+                            iconcode:1,
+                            content:"解绑成功",
+                            yes:'/',
+                            yestext:"返回主页"});
                     });
             }
             else{
@@ -374,14 +383,18 @@ app.get('/nemailunbind',function(req,res){
             if(user){
                 console.log('username unbind');
                 var mailtype = util.mailtypeDel(user.mailtype,"ne");
-                User.update({ userid:userid},{ userid:userid,mailtype:mailtype,neusername: null ,nepassword:null})
+                User.update({ userid:userid},{ mailtype:mailtype,neusername: null ,nepassword:null,neauthcode:null})
                     .exec(function(err, newuser) {
                         if(err){
                             console.log(err);
                             return res.redirect('/');
                         }
                         console.log('unbind success');
-                        return res.redirect('/');
+                        res.render("tip_success",{
+                            iconcode:1,
+                            content:"解绑成功",
+                            yes:'/',
+                            yestext:"返回主页"});
                     });
             }
             else{
@@ -402,14 +415,17 @@ app.get('/pkumailunbind',function(req,res){
             if(user){
                 console.log('username unbind');
                 var mailtype = util.mailtypeParser(user.mailtype,"pku");
-                User.update({ userid:userid},{ userid:userid,mailtype:mailtype,pkuusername: null ,pkupassword:null})
+                User.update({ userid:userid},{ mailtype:mailtype,pkuusername: null ,pkupassword:null,pkuauthcode:null})
                     .exec(function(err, newuser) {
                         if(err){
                             console.log(err);
                             return res.redirect('/');
                         }
-                        console.log('unbind success');
-                        return res.redirect('/');
+                        res.render("tip_success",{
+                            iconcode:1,
+                            content:"解绑成功",
+                            yes:'/',
+                            yestext:"返回主页"});
                     });
             }
             else{
@@ -430,12 +446,22 @@ app.get('/sendmail',function(req,res){
             if(user){
                 console.log('username exit');
                 console.log(user.mailtype);
-                if(user.mailtype==null)
-                    return res.redirect('/');
+                if(user.mailtype==null){
+                    res.render("tip_success",{
+                        iconcode:0,
+                        content:"请先绑定邮箱",
+                        yes:'/',
+                        yestext:"返回主页"});
+                }
                 else{
                     var mailtype =  user.mailtype.split(',');
-                    if(mailtype.length==0)
-                        return res.redirect('/');
+                    if(mailtype.length==0){
+                        res.render("tip_success",{
+                            iconcode:0,
+                            content:"请先绑定邮箱",
+                            yes:'/',
+                            yestext:"返回主页"});
+                    }
                     else
                         res.render('sendmaillist',{title:'请选择发邮箱账户',mailtype:mailtype});
                 }
@@ -459,8 +485,27 @@ app.get('/qqmailsend',function(req,res){
             }
         });
 });
-//app.get('/nemailsend',function(req,res){};
-//app.get('/pkumailsend',function(req,res){};
+app.get('/nemailsend',function(req,res){
+    var  userid = req.cookies.openid;
+    User.findOne({ userid: userid })
+        .exec(function(err, user) {
+            if(err){
+                console.log(err);
+                return res.redirect('/');
+            }
+            if(user){
+                console.log('username exit');
+                res.render('sendmail',{title:'发邮件',mail:user.neusername});
+            }
+        });
+});
+app.get('/pkumailsend',function(req,res){
+    res.render("tip_success",{
+        iconcode:0,
+        content:"抱歉，功能未完善，敬请期待",
+        yes:'/',
+        yestext:"返回主页"});
+});
 app.post('/qqmailsend',function(req,res){
 
     var  userid = req.cookies.openid;
@@ -480,19 +525,72 @@ app.post('/qqmailsend',function(req,res){
             if(user){
                 var option = {
                             mail:user.qqusername,
-                            password:user.qqpassword,
-                            type:'qq',
+                            password:user.qqauthcode,
+                            type:'QQ',
                             sendto:sendto,
                             subject:subject,
                             text:text
                             };
-                mailsender.sendmail(option);
-                return res.redirect('/');
+                mailsender.sendmail(option,res,"/qqmailsend");
             }
         });
 });
-//app.post('/nemailsend',function(req,res){};
-//app.post('/pkumailsend',function(req,res){};
+app.post('/nemailsend',function(req,res){
+    var  userid = req.cookies.openid;
+
+    var sendto = req.body.sendto,
+        subject = req.body.subject,
+        text = req.body.plaintext;
+    console.log(sendto);
+    console.log(subject);
+    console.log(text);
+    User.findOne({ userid: userid })
+        .exec(function(err, user) {
+            if(err){
+                console.log(err);
+                return res.redirect('/');
+            }
+            if(user){
+                var option = {
+                    mail:user.neusername,
+                    password:user.neauthcode,
+                    type:'163',
+                    sendto:sendto,
+                    subject:subject,
+                    text:text
+                };
+                mailsender.sendmail(option,res,"/nemailsend");
+            }
+        });
+});
+app.post('/pkumailsend',function(req,res){
+    var  userid = req.cookies.openid;
+
+    var sendto = req.body.sendto,
+        subject = req.body.subject,
+        text = req.body.plaintext;
+    console.log(sendto);
+    console.log(subject);
+    console.log(text);
+    User.findOne({ userid: userid })
+        .exec(function(err, user) {
+            if(err){
+                console.log(err);
+                return res.redirect('/');
+            }
+            if(user){
+                var option = {
+                    mail:user.neusername,
+                    password:user.pkuauthcode,
+                    type:'pku.edu.cn',
+                    sendto:sendto,
+                    subject:subject,
+                    text:text
+                };
+                mailsender.sendmail(option,res,"/pkumailsend");
+            }
+        });
+});
 
 app.get('/recmail',function(req,res){
     var  userid = req.cookies.openid;
@@ -506,14 +604,24 @@ app.get('/recmail',function(req,res){
             if(user){
                 console.log('username exit');
                 console.log(user.mailtype);
-                if(user.mailtype==null)
-                    return res.redirect('/');
+                if(user.mailtype==null){
+                    res.render("tip_success",{
+                        iconcode:0,
+                        content:"请先绑定邮箱",
+                        yes:'/',
+                        yestext:"返回主页"});
+                }
                 else{
                     var mailtype =  user.mailtype.split(',');
-                    if(mailtype.length==0)
-                        return res.redirect('/');
+                    if(mailtype.length==0){
+                        res.render("tip_success",{
+                            iconcode:0,
+                            content:"请先绑定邮箱",
+                            yes:'/',
+                            yestext:"返回主页"});
+                    }
                     else
-                        res.render('recmaillist',{title:'请选择需要登录邮箱',mailtype:mailtype});
+                        res.render('recmaillist',{title:'请选择收件箱',mailtype:mailtype});
                 }
             }
             else{
@@ -521,7 +629,88 @@ app.get('/recmail',function(req,res){
             }
         });
 });
+app.get('/qqmailrec',function(req,res){
+    var  userid = req.cookies.openid;
+    User.findOne({ userid: userid })
+        .exec(function(err, user) {
+            if(err){
+                console.log(err);
+                return res.redirect('/');
+            }
+            if(user){
+                console.log('username exit');
+                var options={
+                     userid:userid,
+                     user:user.qqusername,
+                     mailtype:'qq',
+                     password:user.qqauthcode,
+                     host: 'imap.qq.com'
+                };
+                mailreceiver(options,res);
+                //res.render('recmail',{title:'发邮件',mail:user.qqusername});
+            }
+        });
+});
+app.get('/nemailrec',function(req,res){
+    res.render("tip_success",{
+        iconcode:0,
+        content:"抱歉，功能未完善，敬请期待",
+        yes:'/',
+        yestext:"返回主页"});
+});
+app.get('/pkumailrec',function(req,res){
+    var  userid = req.cookies.openid;
+    User.findOne({ userid: userid })
+        .exec(function(err, user) {
+            if(err){
+                console.log(err);
+                return res.redirect('/');
+            }
+            if(user){
+                console.log('username exit');
+                var options={
+                    userid:userid,
+                    user:user.pkuusername,
+                    mailtype:'pku',
+                    password:user.pkupassword,
+                    host: 'mail.pku.edu.cn'
+                };
+                mailreceiver(options,res);
+                //res.render('recmail',{title:'发邮件',mail:user.qqusername});
+            }
+        });
+});
+app.get('/qqdetail/:id',function(req,res){
+    var  userid = req.cookies.openid;
+    var seqno =req.params.id;
+    console.log(seqno);
+    var path=userid+'/'+'qq';
+    var file=path+'/mail-'+seqno+'-body.ejs'
+    res.render(file);
+});
+app.get('/nedetail/:id',function(req,res){
+    var  userid = req.cookies.openid;
+    User.findOne({ userid: userid })
+        .exec(function(err, user) {
+            if(err){
+                console.log(err);
+                return res.redirect('/');
+            }
+            if(user){
+                console.log('username exit');
+                res.render('sendmail',{title:'发邮件',mail:user.neusername});
+            }
+        });
+});
+app.get('/pkudetail/:id',function(req,res){
+    var  userid = req.cookies.openid;
+    var seqno =req.params.id;
+    console.log(seqno);
+    var path=userid+'/'+'pku';
+    var file=path+'/mail-'+seqno+'-body.ejs'
+    res.render(file);
+});
 
-app.listen(settings.SPORT,function(req,res){
-  console.log("Server runing at port: " + settings.SPORT);
+app.listen(settings.PORT,function(req,res){
+  console.log("Server runing at port: " + settings.PORT);
 });

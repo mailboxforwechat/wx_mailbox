@@ -2,27 +2,44 @@
  * Created by 姜昊 on 2016/6/4.
  */
 var nodemailer = require('nodemailer');
-
-function sendmial(option){
+function sendmail(option,res,link){
 // create reusable transporter object using the default SMTP transport
     console.log(option);
-    var transporter = nodemailer.createTransport('smtps://'+option.mail+':'+option.password+'@smtp.'+option.type+'.com');
 
-// setup e-mail data with unicode symbols
+    var transporter = nodemailer.createTransport({
+        service: option.type,
+        auth: {
+            user: option.mail,
+            pass: option.password
+        }
+    });
+
     var mailOptions = {
-        from: option.mail,
+        from:option.mail, // sender address
         to: option.sendto, // list of receivers
-        subject: option.subject, // Subject line
-        text: option.text, // plaintext body
+        subject:  option.subject, // Subject line
+        text:  option.text, // plaintext body
         html: '' // html body
     };
 
-// send mail with defined transport object
     transporter.sendMail(mailOptions, function(error, info){
         if(error){
-            return console.log(error);
+            console.log(error);
+            res.render("tip_fail",{content:"发送失败，请检查邮箱授权码或收件人是否填写完整",
+                iconcode:0,
+                yes:link,
+                yestext:"确定",
+                no:"/",
+                notext:"取消"});
+        }else{
+            console.log(error);
+            res.render("tip_fail",{content:"发送成功！",
+                iconcode:1,
+                yes:link,
+                yestext:"再发一封",
+                no:"/",
+                notext:"返回"});
         }
-        console.log('Message sent: ' + info.response);
     });
 }
-exports.sendmail=sendmial;
+exports.sendmail=sendmail;
